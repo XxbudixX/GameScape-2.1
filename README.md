@@ -74,20 +74,8 @@ GameScape is a web app that lets gamers find other players near them on an inter
 pip install flask psycopg2-binary werkzeug
 ```
 
-**2. Configure the database**
 
-Edit `config.ini` with your PostgreSQL credentials:
-
-```ini
-[database]
-host = aws-1-eu-central-1.pooler.supabase.com
-user = postgres.cnzwpafncqrlxvvducnb
-port = 6543
-password = hej_allainvonar3
-database = postgres
-```
-
-**3. Create the database tables**
+**2. Create the database tables**
 
 You need at minimum these two tables:
 
@@ -115,7 +103,7 @@ CREATE TABLE messages (
 );
 ```
 
-**4. Run the app**
+**3. Run the app**
 
 ```bash
 python app.py
