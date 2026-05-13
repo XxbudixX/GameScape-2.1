@@ -1,20 +1,6 @@
-document.addEventListener('DOMContentLoaded', checkAdmin);
-async function addGame() {
-    const res = await fetch('/api/admin/add_game', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            name: 'CS2',
-            image_name: 'cs.png'
-        })
-    });
-
-    const data = await res.json();
-    if (data.success) {
-        alert("Success!");
-    } else {
-        alert("Error: " + data.error);
-    }}
+document.addEventListener('DOMContentLoaded', () => {
+    checkAdmin();
+});
 
 
 async function loadEvents() {

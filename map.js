@@ -41,6 +41,18 @@ const MARKER_COLORS = {
     offline: '#6c6f78',
 };
 
+// Builds a URL for a game image from the GameImages folder.
+// The image_path stored in the DB is the bare key (e.g. "valorant", "team-fortress").
+// We fall back to building a key from the game name if no stored path exists.
+// Input: gameName (string) — e.g. "CS2" or "League of Legends".
+// Returns a relative URL string pointing to the .jpg file.
+function gameImageUrl(gameName) {
+    // Convert the display name to the same slug format used in GameImages:
+    // lowercase, spaces → hyphens, strip anything not alphanumeric or hyphen.
+    const slug = gameName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    return `/GameImages/${slug}.jpg`;
+}
+
 // Initializes the MapLibre map centered roughly over Malmö.
 // antialias: true gives smoother circle edges for the player markers.
 const map = new maplibregl.Map({
@@ -341,7 +353,12 @@ function openPlayerModal(player) {
     
     const statusText = { active: 'Active now', recent: `Active ${player.lastActive}`, offline: 'Offline' }[player.status];
     const statusColor = { active: '#39d98a', recent: '#f5a623', offline: '#6c6f78' }[player.status];
-    const gameTags = player.games.map(game => `<span class="modal-game-tag">${game}</span>`).join('');
+    const gameTags = player.games.map(game => `
+        <span class="modal-game-tag">
+            <img class="modal-game-img" src="${gameImageUrl(game)}" alt="${game}"
+                 onerror="this.style.display='none'">
+            ${game}
+        </span>`).join('');
     
     modalContainer.innerHTML = `
         <div class="player-modal">
@@ -489,9 +506,19 @@ function openPlayerModal(player) {
             .modal-game-tag {
                 background: rgba(30, 31, 34, 0.7);
                 border: 1px solid rgba(155, 89, 182, 0.3);
-                padding: 4px 10px;
+                padding: 4px 10px 4px 6px;
                 border-radius: 20px;
                 font-size: 12px;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+            }
+            .modal-game-img {
+                width: 20px;
+                height: 20px;
+                border-radius: 4px;
+                object-fit: cover;
+                flex-shrink: 0;
             }
             .player-rank, .player-age {
                 font-size: 15px;
@@ -1279,7 +1306,12 @@ function showEventPopup(player, evt) {
             <div class="event-popup-divider"></div>
             <div class="event-popup-row">
                 <span class="event-popup-label">Game</span>
-                <span class="event-popup-value">${evt.gameName}</span>
+                <span class="event-popup-value" style="display:inline-flex;align-items:center;gap:6px;">
+                    <img src="${gameImageUrl(evt.gameName)}" alt="${evt.gameName}"
+                         onerror="this.style.display='none'"
+                         style="width:18px;height:18px;border-radius:3px;object-fit:cover;flex-shrink:0;">
+                    ${evt.gameName}
+                </span>
             </div>
             <div class="event-popup-row">
                 <span class="event-popup-label">Event</span>
@@ -1313,7 +1345,12 @@ function showMiniProfile(player) {
 
     const statusColor = { active: '#39d98a', recent: '#f5a623', offline: '#6c6f78' }[player.status] || '#6c6f78';
     const statusLabel = { active: 'Active now', recent: `Active ${player.lastActive}`, offline: 'Offline' }[player.status];
-    const gamesStr    = (player.games || []).join(' · ');
+    const gamesPillsHtml = (player.games || []).map(g => `
+        <span class="mini-game-pill">
+            <img src="${gameImageUrl(g)}" alt="${g}" onerror="this.style.display='none'"
+                 style="width:16px;height:16px;border-radius:3px;object-fit:cover;flex-shrink:0;">
+            ${g}
+        </span>`).join('');
     const initials    = player.gamertag.slice(0, 2).toUpperCase();
 
     const popupHtml = `
@@ -1335,7 +1372,7 @@ function showMiniProfile(player) {
                 <span class="mini-profile-value">${player.age}</span>
             </div>
             <div class="mini-profile-divider"></div>
-            <div class="mini-profile-games">${gamesStr}</div>
+            <div class="mini-profile-games">${gamesPillsHtml}</div>
             <button class="mini-profile-btn" onclick="window._openFullProfile(${player.id})">View Full Profile</button>
         </div>
     `;
@@ -1383,7 +1420,14 @@ function showMiniProfile(player) {
             .mini-profile-row { display: flex; justify-content: space-between; align-items: center; }
             .mini-profile-label { font-size: 10px; font-weight: 700; color: #60a5fa; text-transform: uppercase; letter-spacing: 1px; }
             .mini-profile-value { font-size: 13px; color: #e0f2fe; font-weight: 600; }
-            .mini-profile-games { font-size: 12px; color: #94a3b8; font-weight: 500; }
+            .mini-profile-games { display: flex; flex-wrap: wrap; gap: 6px; }
+            .mini-game-pill {
+                display: inline-flex; align-items: center; gap: 5px;
+                background: rgba(30,31,34,0.7);
+                border: 1px solid rgba(96,165,250,0.25);
+                border-radius: 20px; padding: 3px 8px 3px 5px;
+                font-size: 11px; color: #94a3b8; font-weight: 500;
+            }
             .mini-profile-btn {
                 width: 100%;
                 background: #1d4ed8;

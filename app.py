@@ -86,37 +86,10 @@ def login():
 def is_admin():
     return session.get('role') == True
 
-@app.route('/api/admin/add_game', methods=['POST'])
-def add_game():
-    if not is_admin():
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
-
-    data = request.get_json()
-    name = data.get('name')
-    image = data.get('image_name')
-
-    conn, cur = connect_db()
-
-    try:
-        cur.execute(
-            "INSERT INTO games (name, image_name) VALUES (%s, %s)",
-            (name, image)
-        )
-        conn.commit()
-        return jsonify({'success': True})
-
-    except Exception as e:
-        conn.rollback()
-        return jsonify({'success': False, 'error': str(e)})
-
-    finally:
-        cur.close()
-        conn.close()
-
 @app.route('/api/events', methods=['GET'])
 def get_events():
     conn, cur = connect_db()
-    cur.execute("SELECT id, title FROM events")
+    cur.execute("SELECT event_id, title FROM event")
     rows = cur.fetchall()
 
     events = [{'id': r[0], 'title': r[1]} for r in rows]
@@ -131,9 +104,30 @@ def delete_event(event_id):
     conn, cur = connect_db()
 
     try:
-        cur.execute("DELETE FROM events WHERE id = %s", (event_id,))
+        cur.execute("DELETE FROM event WHERE event_id = %s", (event_id,))
         conn.commit()
         return jsonify({'success': True})
+    finally:
+        cur.close()
+        conn.close()
+
+
+# Returns all games stored in the database, including their image_path.
+# The frontend uses this to build game image tags from the GameImages folder.
+# No input. Returns JSON with a list of game objects (id, name, image_path).
+@app.route('/api/games', methods=['GET'])
+def get_games():
+    conn, cur = connect_db()
+    if conn is None:
+        return jsonify({'success': False, 'error': 'Database error'}), 500
+    try:
+        cur.execute("SELECT game_id, name, image_path FROM game ORDER BY name")
+        rows = cur.fetchall()
+        games = [{'id': r[0], 'name': r[1], 'image_path': r[2] or ''} for r in rows]
+        return jsonify({'success': True, 'games': games})
+    except Exception as e:
+        print(e)
+        return jsonify({'success': False, 'error': str(e)}), 500
     finally:
         cur.close()
         conn.close()
