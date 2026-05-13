@@ -99,7 +99,7 @@ def add_game():
 
     try:
         cur.execute(
-            "INSERT INTO games (name, image_name) VALUES (%s, %s)",
+            "INSERT INTO games (name, image_path) VALUES (%s, %s)",
             (name, image)
         )
         conn.commit()
