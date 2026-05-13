@@ -45,6 +45,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
         }
 
     } catch (err) {
+        console.error(err);
         // Catches network-level failures (server unreachable, no connection) separately
         // from server-returned errors handled above.
         errorMsg.textContent   = 'Network error – please try again';

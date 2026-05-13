@@ -45,6 +45,7 @@ def me():
 # Returns JSON with success (bool) and username on success, or an error message on failure.
 @app.route('/api/login', methods=['POST'])
 def login():
+    print('login rout hitt')
     data = request.get_json()
     if not data:
         return jsonify({'success': False, 'error': 'No data received'}), 400
@@ -78,7 +79,8 @@ def login():
 
     except Exception as e:
         print(e)
-        return jsonify({'success': False, 'error': 'Login error'}), 500
+        return jsonify({'success': False, 
+                        'error': 'Login error'}), 500
     finally:
         cur.close()
         conn.close()
